@@ -10,6 +10,7 @@
 
     <ul class="list" v-if="posts.length">
       <li v-for="post in posts" :key="post.id" class="item">
+        <img v-if="post.cover_image" :src="post.cover_image" alt="Cover Image" class="cover-image">
         <div class="row">
           <router-link :to="{ name: 'blog-detail', params: { id: post.id } }" class="title">{{ post.title }}</router-link>
           <span class="status" :data-status="post.status">{{ post.status }}</span>
@@ -66,5 +67,6 @@ function formatDate(s) {
 .status[data-status="DENIED"], .status[data-status="denied"] { color: #c00; border-color: #ffd6d6; background: #fff5f5; }
 .meta { color: #666; font-size: 0.9rem; margin-top: 0.25rem; display: flex; gap: 0.4rem; }
 .small { font-size: 0.9rem; }
+.cover-image { max-width: 100%; height: auto; margin-bottom: 1rem; }
 .error { color: #c00; }
 </style>

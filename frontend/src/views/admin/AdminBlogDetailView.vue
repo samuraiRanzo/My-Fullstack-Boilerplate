@@ -15,6 +15,7 @@
           <span class="status" :data-status="post.status">{{ post.status }}</span>
         </div>
       </header>
+      <img v-if="post.cover_image" :src="post.cover_image" alt="Cover Image" class="cover-image">
       <div class="content" v-html="formatContent(post.content)"></div>
 
       <div class="actions">
@@ -95,6 +96,7 @@ function formatContent(text) { if (!text) return ''; return escapeHtml(text).rep
 .title { margin: 0 0 0.25rem; }
 .meta { color: #666; font-size: 0.9rem; display: flex; gap: 0.4rem; align-items: center; }
 .content { margin-top: 1rem; white-space: pre-wrap; }
+.cover-image { max-width: 100%; height: auto; margin-bottom: 1rem; }
 .actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
 .btn { text-decoration: none; background: #333; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; }
 .btn.ghost { background: transparent; color: #333; border: 1px solid #ddd; }

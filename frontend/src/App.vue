@@ -5,12 +5,29 @@
       <router-link to="/" class="link" active-class="active" exact-active-class="active">Home</router-link>
       <router-link to="/about" class="link" active-class="active">About</router-link>
       <router-link to="/blogs" class="link" active-class="active">Blogs</router-link>
-      <router-link v-if="showAdminLink" to="/admin" class="link" active-class="active">Admin</router-link>
+      <router-link to="/books" class="link" active-class="active">Books</router-link>
+      <router-link to="/pricing" class="link" active-class="active">Pricing</router-link>
+
+      <DropdownMenu v-if="showAdminLink" title="Admin">
+        <router-link to="/admin" class="link" active-class="active">Dashboard</router-link>
+        <router-link to="/admin/blogs" class="link" active-class="active">Manage Blogs</router-link>
+        <router-link to="/admin/books" class="link" active-class="active">Manage Books</router-link>
+        <router-link to="/admin/subscription-plans" class="link" active-class="active">Manage Plans</router-link>
+        <!-- Add other admin links here -->
+      </DropdownMenu>
+
       <div class="spacer" />
+
       <template v-if="auth.isAuthenticated">
-        <router-link to="/blogs/my" class="link" active-class="active">My Blogs</router-link>
-        <span class="user">Hello, {{ auth.user?.first_name || auth.user?.username || auth.user?.email }}</span>
-        <button class="link like-button" @click="onLogout">Logout</button>
+        <DropdownMenu :title="`Hello, ${auth.user?.first_name || auth.user?.username || auth.user?.email}`">
+          <router-link to="/profile" class="link" active-class="active">My Profile</router-link>
+          <router-link to="/blogs/my" class="link" active-class="active">My Blogs</router-link>
+          <router-link to="/todos" class="link" active-class="active">My Todos</router-link>
+          <router-link to="/subscription-management" class="link" active-class="active">Manage Subscription</router-link>
+          <router-link to="/premium-feature" class="link" active-class="active">Premium Feature</router-link>
+          <router-link v-if="auth.user?.is_staff || auth.user?.is_superuser" to="/books/upload" class="link" active-class="active">Upload Book</router-link>
+          <button class="link like-button" @click="onLogout">Logout</button>
+        </DropdownMenu>
       </template>
       <template v-else>
         <router-link to="/login" class="link" active-class="active">Login</router-link>
@@ -27,6 +44,7 @@
 import { onMounted, computed } from 'vue'
 import { useAuthStore } from './stores/auth'
 import { useAdminStore } from './stores/admin'
+import DropdownMenu from './components/DropdownMenu.vue' // Import the new component
 
 const auth = useAuthStore()
 const admin = useAdminStore()

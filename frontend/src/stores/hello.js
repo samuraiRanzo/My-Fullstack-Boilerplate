@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import {apiFetch} from "../services/http.js";
 
 export const useHelloStore = defineStore('hello', {
   state: () => ({
@@ -12,7 +13,7 @@ export const useHelloStore = defineStore('hello', {
       this.loading = true
       this.status = 'contacting backend…'
       try {
-        const res = await fetch('/api/hello/')
+        const res = await apiFetch('hello/')
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
         this.message = data.message || JSON.stringify(data)

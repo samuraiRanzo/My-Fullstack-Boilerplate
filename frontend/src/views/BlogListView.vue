@@ -5,6 +5,7 @@
     <p v-if="error" class="error">{{ error }}</p>
     <ul class="list" v-if="posts.length">
       <li v-for="post in posts" :key="post.id" class="item">
+        <img v-if="post.cover_image" :src="post.cover_image" alt="Cover Image" class="cover-image">
         <router-link :to="{ name: 'blog-detail', params: { id: post.id } }" class="title">{{ post.title }}</router-link>
         <div class="meta">
           <span>by {{ post.author?.first_name || post.author?.username || post.author?.email }}</span>
@@ -47,5 +48,6 @@ function formatDate(s) {
 .item { padding: 1rem; border: 1px solid #eee; border-radius: 8px; }
 .title { font-weight: 600; text-decoration: none; color: #333; }
 .meta { color: #666; font-size: 0.9rem; margin-top: 0.25rem; display: flex; gap: 0.4rem; }
+.cover-image { max-width: 100%; height: auto; margin-bottom: 1rem; }
 .error { color: #c00; }
 </style>

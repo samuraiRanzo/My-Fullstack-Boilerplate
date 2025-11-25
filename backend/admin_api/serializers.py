@@ -6,6 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import Blog
 from core.serializers import BlogSerializer
+from books.models import Book # Import Book model
+from subscriptions.models import SubscriptionPlan # Import SubscriptionPlan model
 
 User = get_user_model()
 
@@ -51,5 +53,43 @@ class AdminBlogWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Blog
-        fields = ['id', 'author_id', 'title', 'content', 'status', 'created_at', 'updated_at']
+        fields = ['id', 'author_id','cover_image', 'title', 'content', 'status', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'profile_picture',
+            'is_active',
+            'is_staff',
+            'is_superuser',
+            'date_joined',
+            'last_login',
+        ]
+        read_only_fields = ['id', 'date_joined', 'last_login']
+
+    def update(self, instance, validated_data):
+        # Handle password change separately if provided
+        password = validated_data.pop('password', None)
+        if password:
+            instance.set_password(password)
+        return super().update(instance, validated_data)
+
+class AdminBookSerializer(serializers.ModelSerializer):
+    uploaded_by = serializers.StringRelatedField() # Display username of uploader
+
+    class Meta:
+        model = Book
+        fields = '__all__' # Include all fields for now
+        read_only_fields = ['id', 'uploaded_by', 'created_at', 'updated_at']
+
+class AdminSubscriptionPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionPlan
+        fields = '__all__'

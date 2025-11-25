@@ -7,30 +7,26 @@
 //  - PUT    /api/blog/:id/         (auth, author or staff)
 //  - PATCH  /api/blog/:id/         (auth, author or staff)
 
-import { apiFetch } from './http'
-
-const API_BASE = '/api'
+import { apiFetch } from './http.js'
 
 export async function listPublic() {
-  return await apiFetch(`${API_BASE}/blog/`, { method: 'GET' }, { auth: false })
+  return await apiFetch(`/blog/`, { method: 'GET' }, { auth: false })
 }
 
 export async function listMine(_accessToken) {
   // auth:true attaches token and auto-refreshes; parameter kept for compatibility
-  return await apiFetch(`${API_BASE}/blog/my/`, { method: 'GET' }, { auth: true })
+  return await apiFetch(`/blog/my/`, { method: 'GET' }, { auth: true })
 }
 
 export async function retrieve(id, _accessToken) {
   // If viewer is authenticated, backend may reveal pending posts
-  return await apiFetch(`${API_BASE}/blog/${id}/`, { method: 'GET' }, { auth: true })
+  return await apiFetch(`/blog/${id}/`, { method: 'GET' }, { auth: true })
 }
 
 export async function createPost(payload, _accessToken) {
-  const body = JSON.stringify({ title: payload.title, content: payload.content })
-  return await apiFetch(`${API_BASE}/blog/`, { method: 'POST', body }, { auth: true })
+  return await apiFetch(`/blog/`, { method: 'POST', body: payload }, { auth: true })
 }
 
 export async function updatePost(id, payload, _accessToken) {
-  const body = JSON.stringify({ title: payload.title, content: payload.content })
-  return await apiFetch(`${API_BASE}/blog/${id}/`, { method: 'PUT', body }, { auth: true })
+  return await apiFetch(`/blog/${id}/`, { method: 'PUT', body: payload }, { auth: true })
 }

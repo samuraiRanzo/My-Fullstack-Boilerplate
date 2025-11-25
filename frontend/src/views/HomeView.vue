@@ -1,23 +1,64 @@
 <template>
   <div class="container">
     <h1>Home</h1>
-    <p>Status: <strong>{{ store.status }}</strong></p>
-    <p v-if="store.message">Backend says: <code>{{ store.message }}</code></p>
-    <button @click="store.fetchHello" :disabled="store.loading">
-      {{ store.loading ? 'Loading…' : 'Call /api/hello/' }}
+    <div v-if="authStore.user">
+      <h2>Welcome, {{ authStore.user.username }}</h2>
+      <div v-if="authStore.user.profile_picture">
+        <img :src="authStore.user.profile_picture" alt="Profile picture" width="100">
+      </div>
+      <div>
+        <input type="file" @change="onFileChange" accept="image/*">
+        <button @click="uploadProfilePicture" :disabled="!selectedFile">Upload</button>
+      </div>
+    </div>
+    <p>Status: <strong>{{ helloStore.status }}</strong></p>
+    <p v-if="helloStore.message">Backend says: <code>{{ helloStore.message }}</code></p>
+    <button @click="helloStore.fetchHello" :disabled="helloStore.loading">
+      {{ helloStore.loading ? 'Loading…' : 'Call /api/hello/' }}
     </button>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '../stores/auth'
 import { useHelloStore } from '../stores/hello'
+import { apiFetch } from '../services/http'
 
-const store = useHelloStore()
+const helloStore = useHelloStore()
+const authStore = useAuthStore()
+
+const selectedFile = ref(null)
+
+function onFileChange(event) {
+  selectedFile.value = event.target.files[0]
+}
+
+async function uploadProfilePicture() {
+  if (!selectedFile.value) {
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('profile_picture', selectedFile.value)
+
+  try {
+    await apiFetch('/auth/user/profile-picture/', {
+      method: 'PUT',
+      body: formData,
+      headers: {
+        // Do not set Content-Type, the browser will set it with the correct boundary
+      }
+    }, { auth: true })
+    await authStore.loadUser()
+  } catch (error) {
+    console.error('Error uploading profile picture:', error)
+  }
+}
 
 onMounted(() => {
-  if (!store.message) {
-    store.fetchHello()
+  if (!helloStore.message) {
+    helloStore.fetchHello()
   }
 })
 </script>

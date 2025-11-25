@@ -7,10 +7,18 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Blog
 from core.serializers import BlogSerializer
+from books.models import Book # Import Book model
+from subscriptions.models import SubscriptionPlan # Import SubscriptionPlan model
 from .serializers import (
     AdminEmailTokenObtainPairSerializer,
     AdminBlogWriteSerializer,
+    AdminUserSerializer,
+    AdminBookSerializer,
+    AdminSubscriptionPlanSerializer, # Import the new serializer
 )
+from django.contrib.auth import get_user_model # Import get_user_model
+
+User = get_user_model() # Get the custom user model
 
 
 class AdminLoginView(TokenObtainPairView):
@@ -71,3 +79,42 @@ class AdminBlogDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_serializer_class(self):
         return AdminBlogWriteSerializer if self.request.method in ('PUT', 'PATCH') else BlogSerializer
+
+# New User Management Views
+class AdminUserListView(generics.ListCreateAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = AdminUserSerializer
+    pagination_class = AdminPagination
+
+class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
+
+# New Book Management Views
+class AdminBookListView(generics.ListCreateAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = Book.objects.all().order_by('-created_at')
+    serializer_class = AdminBookSerializer
+    pagination_class = AdminPagination
+
+    def perform_create(self, serializer):
+        serializer.save(uploaded_by=self.request.user)
+
+class AdminBookDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = Book.objects.all()
+    serializer_class = AdminBookSerializer
+
+# New Subscription Plan Management Views
+class AdminSubscriptionPlanListView(generics.ListCreateAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = SubscriptionPlan.objects.all().order_by('price')
+    serializer_class = AdminSubscriptionPlanSerializer
+    pagination_class = AdminPagination
+
+class AdminSubscriptionPlanDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = SubscriptionPlan.objects.all()
+    serializer_class = AdminSubscriptionPlanSerializer

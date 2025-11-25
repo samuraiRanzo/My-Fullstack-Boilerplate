@@ -1,19 +1,17 @@
-// Shared HTTP helper with silent JWT refresh support
-// Usage:
-//  - Call setAuthProvider({ getAccess, refresh, logout }) once (e.g., in main.js)
-//  - Use apiFetch(url, { method, headers, body }, { auth: true|false })
-//    - When auth=true, it will attach Authorization: Bearer <access> if available
-//    - On 401 responses, it will attempt refresh() once and retry the request
+const RAW = import.meta.env.VITE_API_URL || ''
 
+export const API_BASE = RAW.replace(/\/$/, '')
+
+export function withApi(path) {
+  const p = String(path || '')
+  return p.startsWith('/') ? `${API_BASE}/api${p}` : `${API_BASE}/api/${p}`
+}
 let authProvider = null
 
 export function setAuthProvider(provider) {
   authProvider = provider || null
 }
 
-export function getAuthProvider() {
-  return authProvider
-}
 
 export function normalizeErrors(data, httpStatus) {
   const err = new Error('Request failed')
@@ -36,14 +34,16 @@ export function normalizeErrors(data, httpStatus) {
   return err
 }
 
-function ensureHeaders(h) {
+function ensureHeaders(h, body) {
   const headers = new Headers(h || {})
-  if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  if (!headers.has('Content-Type') && !(body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json')
+  }
   return headers
 }
 
 async function doFetch(input, init) {
-  const res = await fetch(input, init)
+  const res = await fetch(withApi(input), init)
   let data = null
   try { data = await res.json() } catch (_) { data = {} }
   if (!res.ok) throw normalizeErrors(data, res.status)
@@ -52,7 +52,7 @@ async function doFetch(input, init) {
 
 export async function apiFetch(input, init = {}, options = {}) {
   const { auth = false, provider = null } = options
-  const headers = ensureHeaders(init.headers)
+  const headers = ensureHeaders(init.headers, init.body)
 
   // Choose provider: per-request override or global
   const providerToUse = provider || authProvider

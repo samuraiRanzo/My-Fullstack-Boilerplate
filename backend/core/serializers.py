@@ -4,11 +4,16 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Blog
+from subscriptions.models import UserSubscription # Import UserSubscription
+from subscriptions.serializers import UserSubscriptionSerializer # Import UserSubscriptionSerializer
 
 User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    subscription_status = serializers.SerializerMethodField()
+    subscription_plan = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
@@ -17,8 +22,25 @@ class UserSerializer(serializers.ModelSerializer):
             'email',
             'first_name',
             'last_name',
+            'profile_picture',
+            'subscription_status',
+            'subscription_plan',
         ]
         read_only_fields = ['id']
+
+    def get_subscription_status(self, obj):
+        try:
+            return obj.usersubscription.status
+        except UserSubscription.DoesNotExist:
+            return None
+
+    def get_subscription_plan(self, obj):
+        try:
+            if hasattr(obj, 'usersubscription') and obj.usersubscription.plan:
+                return UserSubscriptionSerializer(obj.usersubscription).data['plan']
+            return None
+        except UserSubscription.DoesNotExist:
+            return None
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -84,14 +106,14 @@ class BlogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Blog
-        fields = ['id', 'author', 'title', 'content', 'status', 'created_at', 'updated_at']
+        fields = ['id', 'author', 'title','cover_image', 'content', 'status', 'created_at', 'updated_at']
         read_only_fields = ['id', 'author', 'status', 'created_at', 'updated_at']
 
 
 class BlogCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blog
-        fields = ['id', 'title', 'content', 'status', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'content', 'status', 'cover_image', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def validate(self, attrs):

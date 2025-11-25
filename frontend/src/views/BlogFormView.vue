@@ -15,6 +15,11 @@
         <textarea v-model="form.content" rows="10" required></textarea>
       </label>
 
+      <label>
+        Cover Image
+        <input type="file" @change="onFileChange" accept="image/*">
+      </label>
+
       <button type="submit" :disabled="submitting">
         {{ submitting ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Save Changes' : 'Create Post') }}
       </button>
@@ -36,10 +41,15 @@ const auth = useAuthStore()
 
 const isEdit = computed(() => route.name === 'blog-edit' || Boolean(route.params.id))
 const id = computed(() => route.params.id)
+const selectedFile = ref(null)
 
 const form = reactive({ title: '', content: '' })
 const error = ref('')
 const submitting = ref(false)
+
+function onFileChange(event) {
+  selectedFile.value = event.target.files[0]
+}
 
 onMounted(async () => {
   if (isEdit.value && id.value) {
@@ -57,11 +67,18 @@ async function onSubmit() {
   error.value = ''
   submitting.value = true
   try {
+    const formData = new FormData()
+    formData.append('title', form.title)
+    formData.append('content', form.content)
+    if (selectedFile.value) {
+      formData.append('cover_image', selectedFile.value)
+    }
+
     if (isEdit.value && id.value) {
-      const updated = await updatePost(id.value, form, auth.access)
+      const updated = await updatePost(id.value, formData, auth.access)
       router.push({ name: 'blog-detail', params: { id: updated.id } })
     } else {
-      const created = await createPost(form, auth.access)
+      const created = await createPost(formData, auth.access)
       router.push({ name: 'blog-detail', params: { id: created.id } })
     }
   } catch (e) {

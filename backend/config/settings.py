@@ -1,10 +1,11 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'supersecretcode1'
 DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*'] # Should be changed for production
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,10 +18,15 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'admin_api',
+    'corsheaders',
+    'todos',
+    'subscriptions',
+    'books',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -28,7 +34,17 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
+# Stripe
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+
+CORS_ALLOW_CREDENTIALS = True
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -53,11 +69,11 @@ ASGI_APPLICATION = 'config.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME':  'coredb',
-        'USER': 'cadmin',
-        'PASSWORD': 'supersecretcode2',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME', 'coredb'),
+        'USER': os.environ.get('DB_USER', 'cadmin'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'supersecretcode2'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -86,6 +102,26 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# FTP storage settings
+if os.environ.get('FTP_HOST'):
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.ftp.FTPStorage",
+            "OPTIONS": {
+                # CORRECTED LOCATION URL
+                "location": f"ftp://{os.environ.get('FTP_USER')}:{os.environ.get('FTP_PASS')}@{os.environ.get('FTP_HOST')}:{os.environ.get('FTP_PORT')}/",
+                # ---------------------
+                "base_url": "http://localhost:8080/media/",
+                "allow_overwrite": True, # Set to True to overwrite files
+            },
+        },
+    }
+    MEDIA_URL = 'http://localhost:8080/media/'
+else:
+    # Use local filesystem for media storage if FTP is not configured
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.CustomUser'

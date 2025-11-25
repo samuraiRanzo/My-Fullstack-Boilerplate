@@ -15,6 +15,7 @@
           <span v-if="post.status" class="status" :data-status="post.status">{{ post.status }}</span>
         </div>
       </header>
+      <img v-if="post.cover_image" :src="post.cover_image" alt="Cover Image" class="cover-image">
       <div class="content" v-html="formatContent(post.content)"></div>
 
       <div class="actions" v-if="canEdit">
@@ -82,6 +83,7 @@ function formatContent(text) {
 .title { margin: 0 0 0.25rem; }
 .meta { color: #666; font-size: 0.9rem; display: flex; gap: 0.4rem; align-items: center; }
 .content { margin-top: 1rem; white-space: pre-wrap; }
+.cover-image { max-width: 100%; height: auto; margin-bottom: 1rem; }
 .actions { margin-top: 1rem; }
 .btn { display: inline-block; text-decoration: none; background: #42b883; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; }
 .status { margin-left: auto; font-size: 0.8rem; padding: 0.1rem 0.4rem; border-radius: 4px; border: 1px solid #ddd; color: #555; text-transform: capitalize; }

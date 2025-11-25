@@ -1,6 +1,8 @@
-from django.http import JsonResponse
+from http import HTTPStatus
+
 from rest_framework import generics
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
@@ -13,15 +15,6 @@ from .serializers import (
     BlogSerializer,
     BlogCreateUpdateSerializer,
 )
-
-
-def hello(request):
-    return JsonResponse({
-        "message": "Hello from Django!",
-        "framework": "Django",
-        "version": 5,
-    })
-
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -43,12 +36,16 @@ class UserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(UserSerializer(request.user).data)
+        user = request.user
+        # Prefetch the related UserSubscription object
+        user = User.objects.select_related('usersubscription').get(pk=user.pk)
+        return Response(UserSerializer(user).data)
 
 
 class BlogListCreateView(generics.ListCreateAPIView):
     queryset = Blog.objects.all()
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
         # Public sees only approved posts
@@ -72,6 +69,7 @@ class BlogListCreateView(generics.ListCreateAPIView):
 
 class BlogDetailView(generics.RetrieveUpdateAPIView):
     queryset = Blog.objects.select_related('author').all()
+    parser_classes = [MultiPartParser, FormParser]
 
     def get_serializer_class(self):
         if self.request.method in ('PUT', 'PATCH'):
@@ -114,3 +112,18 @@ class MyBlogListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Blog.objects.filter(author=self.request.user)
+
+
+class ProfilePictureUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def put(self, request, format=None):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=HTTPStatus.OK)
+        return Response(serializer.errors, status=HTTPStatus.BAD_REQUEST)
+
+

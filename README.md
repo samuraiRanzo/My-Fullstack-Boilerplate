@@ -16,6 +16,37 @@ What you can do:
 
 ### Quick Start
 
+You can run this project in two ways: manually with local Node.js and Python environments, or with Docker.
+
+#### Running with Docker (Recommended)
+
+This is the easiest way to get started.
+
+- Requirements
+  - Docker
+  - Docker Compose
+
+- Steps
+  1.  **Start the backend and database:**
+      Navigate to the `backend` directory and run:
+      ```bash
+      cd backend
+      docker-compose up --build
+      ```
+      This will build the Docker image for the backend, start the backend service, and start a PostgreSQL database service. The backend will be available at `http://localhost:9090`.
+
+  2.  **Start the frontend:**
+      In a separate terminal, navigate to the `frontend` directory and run:
+      ```bash
+      cd frontend
+      docker-compose up --build
+      ```
+      This will build the Docker image for the frontend and start the frontend service. The frontend will be available at `http://localhost:5173`.
+
+The two services communicate over a shared Docker network. The backend API will be available at `http://localhost:9090/api/`.
+
+#### Manual Setup
+
 - Requirements
   - Node.js 18+ (20+ recommended)
   - npm (or pnpm/yarn)
@@ -28,7 +59,7 @@ What you can do:
        ```
        cd backend
        python -m venv .venv
-       # Windows: .venv\Scripts\activate
+       # Windows: .venv\\Scripts\\activate
        # macOS/Linux:
        source .venv/bin/activate
        pip install -r requirements.txt

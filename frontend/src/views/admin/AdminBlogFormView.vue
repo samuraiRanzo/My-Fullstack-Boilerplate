@@ -14,6 +14,10 @@
         Content
         <textarea v-model="form.content" rows="10" required></textarea>
       </label>
+      <label>
+        Cover
+         <input type="file" @change="onFileChange" accept="image/*">
+      </label>
 
       <div class="row">
         <label class="small">
@@ -51,7 +55,11 @@ const admin = useAdminStore()
 
 const isEdit = computed(() => route.name === 'admin-blog-edit' || Boolean(route.params.id))
 const id = computed(() => route.params.id)
+const selectedFile = ref(null)
 
+function onFileChange(event) {
+  selectedFile.value = event.target.files[0]
+}
 const form = reactive({ title: '', content: '', author_id: '', status: 'PENDING' })
 const error = ref('')
 const submitting = ref(false)
@@ -74,18 +82,21 @@ async function onSubmit() {
   error.value = ''
   submitting.value = true
   try {
-    const payload = {
-      title: form.title,
-      content: form.content,
-      status: form.status,
+    const formData = new FormData()
+    if (selectedFile.value) {
+      formData.append('cover_image', selectedFile.value)
     }
-    if (form.author_id) payload.author_id = form.author_id
-
+    formData.append('title', form.title)
+    formData.append('content', form.content)
+    formData.append('status', form.status)
+    if (form.author_id) {
+      formData.append('author_id', form.author_id)
+    }
     if (isEdit.value && id.value) {
-      const updated = await adminBlogUpdate(id.value, payload, admin.getAuthProvider())
+      const updated = await adminBlogUpdate(id.value, formData, admin.getAuthProvider())
       router.push({ name: 'admin-blog-detail', params: { id: updated.id } })
     } else {
-      const created = await adminBlogCreate(payload, admin.getAuthProvider())
+      const created = await adminBlogCreate(formData, admin.getAuthProvider())
       router.push({ name: 'admin-blog-detail', params: { id: created.id } })
     }
   } catch (e) {

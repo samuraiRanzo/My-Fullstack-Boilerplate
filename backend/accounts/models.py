@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 class CustomUser(AbstractUser):
     # Keep a username for login; make email unique and required
     email = models.EmailField(_('email address'), unique=True, blank=False, null=False)
+    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
 
     # Placeholders for future extension, e.g.:
     # phone = models.CharField(max_length=20, blank=True)
